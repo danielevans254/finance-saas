@@ -1,5 +1,4 @@
 import Header from "@/components/header";
-import { UserButton } from "@clerk/nextjs";
 
 type Props = {
   children: React.ReactNode;
