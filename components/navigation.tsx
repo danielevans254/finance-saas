@@ -11,7 +11,6 @@ import {
   SheetClose,
   SheetContent,
   SheetDescription,
-  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -48,7 +47,7 @@ const Navigation = () => {
           <SheetDescription>
             <div className="flex flex-col gap-y-2">
               {navRoutes.map((route) => (
-                <Button key={route.href} variant={route.href === pathname ? "secondary" : "ghost"} onClick={() => onClick(route.href)} className={cn(isActive(route.href) ? "text-white" : "text-white/60")}>
+                <Button key={route.href} variant={route.href === pathname ? "default" : "ghost"} onClick={() => onClick(route.href)} className={cn(isActive(route.href) ? "text-white" : "text-black/80")}>
                   {route.label}
                 </Button>
               ))}
