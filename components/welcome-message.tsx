@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useUser } from '@clerk/nextjs';
 
-const WelcomeMessage = () => {
+export const WelcomeMessage = () => {
   const { user, isLoaded } = useUser();
   const [currentDate, setCurrentDate] = useState('');
 
@@ -39,17 +39,17 @@ const WelcomeMessage = () => {
       </h1>
       <p className="text-3xl text-white flex items-center">
         Welcome back
-        <span className="ml-2 bg-white text-indigo-600 rounded-full px-4 py-1 font-semibold">
-          {user?.firstName}
-        </span>
-        {!user?.firstName && (
-          <span className="text-indigo-600 rounded-full px-2 py-1 font-semibold">
-            😊
-          </span>
+        {user?.firstName && (
+          <>
+            <span className="ml-2 bg-white text-indigo-600 rounded-full px-4 py-1 font-semibold">
+              {'}'}
+            </span>
+            <span className="text-indigo-600 rounded-full px-2 py-1 font-semibold">
+              😊
+            </span>
+          </>
         )}
       </p>
     </div>
   );
-}
-
-export default WelcomeMessage;
+};
