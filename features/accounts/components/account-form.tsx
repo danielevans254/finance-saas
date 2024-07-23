@@ -25,10 +25,11 @@ import {
 } from "@/components/ui/popover"
 
 import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { Check, ChevronsUpDown, Plus, PlusIcon, Trash2Icon } from "lucide-react";
+import { Check, ChevronsUpDown, Plus, RotateCcw } from "lucide-react";
 
 import { financialAccountCategories, financialAccountTypes } from "@/constants/financial-accounts-types";
 
@@ -42,22 +43,45 @@ type Props = {
     customTypeName: string,
   },
   onSubmit: (values: z.infer<typeof financialAccountFormSchema>) => void,
-  onDelete?: () => void,
   disabled?: boolean,
 };
 
 const financialAccountFormSchema = z.object({
   name: z.string().min(2).max(50),
-  category: z.string({ required_error: 'Please select an account category' }),
-  type: z.string({ required_error: 'Please select an account type' }),
+  category: z.string().min(2, { message: "Please enter an account category" }).max(50),
+  type: z.string().optional(),
   customAccountName: z.string().optional(),
   customTypeName: z.string().optional(),
-})
+}).superRefine((data, ctx) => {
+  if (data.category !== 'custom' && !data.type) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Type is required if category is not "custom"',
+      path: ['type'],
+    });
+  }
+
+  if (data.category === 'custom') {
+    if (!data.customAccountName) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Custom account name is required if category is "custom"',
+        path: ['customAccountName'],
+      });
+    }
+    if (!data.customTypeName) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Custom type name is required if category is "custom"',
+        path: ['customTypeName'],
+      });
+    }
+  }
+});
 
 export const FinancialAccountForm = ({
   id,
   defaultValues,
-  onDelete,
   disabled,
 }: Props) => {
   const form = useForm<z.infer<typeof financialAccountFormSchema>>({
@@ -71,38 +95,43 @@ export const FinancialAccountForm = ({
     },
   });
 
-  // TODO: Put this in a separate constants file
-  const handleDelete = () => {
-    onDelete?.();
-    console.log("Deleting account");
-  };
-
-  function onSubmit(values: z.infer<typeof financialAccountFormSchema>) {
-    console.log(values)
-  }
-
   const [categoryOpen, setCategoryOpen] = useState(false);
+  const [categoryValue, setCategoryValue] = useState('');
   const [accountTypeOpen, setAccountTypeOpen] = useState(false);
-  const [categoryValue, setCategoryValue] = useState("");
-  const [customAccountName, setCustomAccountName] = useState("");
-  const [customAccountType, setCustomAccountType] = useState("");
-  const [accountTypeValue, setAccountTypeValue] = useState("");
-
-  // console.log(categoryValue);
-  // console.log(customAccountName);
-  // console.log(customAccountType);
-  // console.log(accountTypeValue);
+  const [accountTypeValue, setAccountTypeValue] = useState('');
+  const [customAccountName, setCustomAccountName] = useState('');
+  const [customAccountType, setCustomAccountType] = useState('');
 
   const categories = Array.isArray(financialAccountCategories) ? financialAccountCategories : [];
 
   const accountTypes = financialAccountTypes[categoryValue] || [];
 
-  // TODO: Upon choosing an item it doesn't automatically close the dropdown
+  const handleCategoryChange = (value: string) => {
+    form.setValue('category', value);
+    setCategoryValue(value);
+    setAccountTypeValue('');
+    if (value === 'custom') {
+      form.setValue('type', '');
+    }
+  };
+
+  // TODO: Put this in a separate constants file
+  const handleClear = () => {
+    form.reset();
+    setCategoryValue('');
+    setAccountTypeValue('');
+    setCustomAccountName('');
+    setCustomAccountType('');
+  };
+
+  const handleSubmit = (values: z.infer<typeof financialAccountFormSchema>) => {
+    console.log(values);
+  }
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <div>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+        <div className="space-y-4">
           <FormField
             control={form.control}
             name="name"
@@ -116,27 +145,31 @@ export const FinancialAccountForm = ({
               </FormItem>
             )}
           />
-          {/* Category Selection */}
           <FormField
             control={form.control}
             name="category"
             render={({ field }) => (
               <FormItem>
+                <FormLabel>Account Category</FormLabel>
                 <Popover open={categoryOpen} onOpenChange={setCategoryOpen}>
-                  <FormLabel>Account Category</FormLabel>
                   <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={categoryOpen}
-                      className="w-full justify-between"
-                      onClick={() => setCategoryOpen(!categoryOpen)}
-                    >
-                      {categoryValue
-                        ? categories.find((category) => category.value === categoryValue)?.label
-                        : "Select account category"}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={categoryOpen}
+                        className={cn(
+                          "w-full justify-between",
+                          !field.value && "text-muted-foreground"
+                        )}
+                        onClick={() => setCategoryOpen(!categoryOpen)}
+                      >
+                        {categoryValue
+                          ? categories.find((category) => category.value === categoryValue)?.label
+                          : "Select account category"}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
                   </PopoverTrigger>
                   <PopoverContent className="w-full p-0">
                     <Command>
@@ -148,10 +181,8 @@ export const FinancialAccountForm = ({
                             key={category.value}
                             value={category.value}
                             onSelect={(currentValue) => {
-                              setCategoryValue(currentValue === categoryValue ? "" : currentValue);
-                              setAccountTypeValue("");
+                              handleCategoryChange(currentValue);
                               setCategoryOpen(false);
-                              // setCategoryValue('category', currentValue === categoryValue ? "" : currentValue);
                             }}
                           >
                             <Check
@@ -168,30 +199,33 @@ export const FinancialAccountForm = ({
               </FormItem>
             )}
           />
-          {/* Account Type Selection */}
           {categoryValue && (
             <FormField
               control={form.control}
               name="type"
               render={({ field }) => (
                 <FormItem>
-                  {categoryValue !== "custom" && (
-
+                  {categoryValue !== "custom" ? (
                     <Popover open={accountTypeOpen} onOpenChange={setAccountTypeOpen}>
                       <FormLabel>Account Type</FormLabel>
                       <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          aria-expanded={accountTypeOpen}
-                          className="w-full justify-between"
-                          onClick={() => setAccountTypeOpen(!accountTypeOpen)}
-                        >
-                          {accountTypeValue
-                            ? accountTypes.find((accountType) => accountType.value === accountTypeValue)?.label
-                            : "Select account type"}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={accountTypeOpen}
+                            className={cn(
+                              "w-full justify-between",
+                              !field.value && "text-muted-foreground"
+                            )}
+                            onClick={() => setAccountTypeOpen(!accountTypeOpen)}
+                          >
+                            {accountTypeValue
+                              ? accountTypes.find((accountType) => accountType.value === accountTypeValue)?.label
+                              : "Select account type"}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
                       </PopoverTrigger>
                       <PopoverContent className="w-full p-0">
                         <Command>
@@ -205,7 +239,7 @@ export const FinancialAccountForm = ({
                                 onSelect={(currentValue) => {
                                   setAccountTypeValue(currentValue === accountTypeValue ? "" : currentValue);
                                   setAccountTypeOpen(false);
-                                  // setValue('type', currentValue === accountTypeValue ? "" : currentValue);
+                                  form.setValue("type", currentValue);
                                 }}
                               >
                                 <Check
@@ -218,27 +252,34 @@ export const FinancialAccountForm = ({
                         </Command>
                       </PopoverContent>
                     </Popover>
-                  )}
-                  {categoryValue === "custom" && (
+                  ) : (
                     <>
-                      <FormLabel>Custom Account Category Name</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter custom account category"
-                          value={customAccountName}
-                          onChange={(e) => setCustomAccountName(e.target.value)}
-                          className="w-full"
-                        />
-                      </FormControl>
-                      <FormLabel>Custom Account Category Type</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter custom account category type"
-                          value={customAccountType}
-                          onChange={(e) => setCustomAccountType(e.target.value)}
-                          className="w-full"
-                        />
-                      </FormControl>
+                      <FormField
+                        control={form.control}
+                        name="customAccountName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Custom Account Category Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter custom account category" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="customTypeName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Custom Account Category Type</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter custom account category type" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </>
                   )}
                   <FormMessage />
@@ -252,9 +293,9 @@ export const FinancialAccountForm = ({
             <Plus className="mr-2 size-2" />
             Create Account
           </Button>
-          <Button type="button" variant="destructive" className="w-full">
-            <Trash2Icon className="mr-2 size-2" />
-            Delete Account
+          <Button type="button" variant="destructive" className="w-full" onClick={handleClear}>
+            <RotateCcw className="mr-2 size-2" />
+            Clear Fields
           </Button>
         </div>
       </form>
