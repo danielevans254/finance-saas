@@ -33,22 +33,24 @@ import { Check, ChevronsUpDown, Plus, RotateCcw } from "lucide-react";
 
 import { financialAccountCategories, financialAccountTypes } from "@/constants/financial-accounts-types";
 
+type FormValues = z.infer<typeof financialAccountFormSchema>;
+
 type Props = {
-  id: string,
-  defaultValues: {
+  id?: string,
+  defaultValues?: {
     name: string,
     category: string,
     type: string,
     customAccountName: string,
     customTypeName: string,
   },
-  onSubmit: (values: z.infer<typeof financialAccountFormSchema>) => void,
+  onSubmit: (values: FormValues) => void,
   disabled?: boolean,
 };
 
 const financialAccountFormSchema = z.object({
-  name: z.string().min(2).max(50),
-  category: z.string().min(2, { message: "Please enter an account category" }).max(50),
+  name: z.string().min(1, { message: "Please enter an account name" }).max(50, { message: "Account name is too long" }),
+  category: z.string().min(1, { message: "Please enter an account category" }).max(50),
   type: z.string().optional(),
   customAccountName: z.string().optional(),
   customTypeName: z.string().optional(),
@@ -82,18 +84,15 @@ const financialAccountFormSchema = z.object({
 export const FinancialAccountForm = ({
   id,
   defaultValues,
+  onSubmit,
   disabled,
 }: Props) => {
-  const form = useForm<z.infer<typeof financialAccountFormSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(financialAccountFormSchema),
-    defaultValues: {
-      name: "",
-      category: "",
-      type: "",
-      customAccountName: "",
-      customTypeName: "",
-    },
+    defaultValues: defaultValues,
   });
+
+  // FIXME: Whatever the fuck this is.. Warning: A component is changing a controlled input to be uncontrolled. This is likely caused by the value changing from a defined to undefined, which should not happen. Decide between using a controlled or uncontrolled input element for the lifetime of the component. More info: https://reactjs.org/link/controlled-components
 
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [categoryValue, setCategoryValue] = useState('');
@@ -110,9 +109,7 @@ export const FinancialAccountForm = ({
     form.setValue('category', value);
     setCategoryValue(value);
     setAccountTypeValue('');
-    if (value === 'custom') {
-      form.setValue('type', '');
-    }
+    form.setValue('type', '');
   };
 
   // TODO: Put this in a separate constants file
@@ -124,8 +121,8 @@ export const FinancialAccountForm = ({
     setCustomAccountType('');
   };
 
-  const handleSubmit = (values: z.infer<typeof financialAccountFormSchema>) => {
-    console.log(values);
+  const handleSubmit = (values: FormValues) => {
+    console.log({ values });
   }
 
   return (
@@ -186,7 +183,7 @@ export const FinancialAccountForm = ({
                             }}
                           >
                             <Check
-                              className={`mr-2 h-4 w-4 ${category.value === field.value ? "opacity-100" : "opacity-0"}`}
+                              className={`mr-2 h-4 w-4 ${categoryValue === category.value ? "opacity-100" : "opacity-0"}`}
                             />
                             {category.label}
                           </CommandItem>
