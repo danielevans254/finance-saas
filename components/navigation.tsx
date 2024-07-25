@@ -19,7 +19,7 @@ import { Button } from "./ui/button";
 import { Menu } from "lucide-react";
 import { motion } from 'framer-motion';
 
-const Navigation = () => {
+export const Navigation = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const router = useRouter();
   const isMobile = useMedia('(max-width: 1024px)', false);
@@ -45,9 +45,11 @@ const Navigation = () => {
             <Menu className="w-6 h-6" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-full max-w-full">
+        <SheetContent side="left">
           <SheetHeader>
-            <SheetTitle className="text-2xl font-semibold">Menu</SheetTitle>
+            <SheetTitle className="text-2xl font-semibold">
+              Menu
+            </SheetTitle>
             <SheetClose />
           </SheetHeader>
           <SheetDescription>
@@ -114,6 +116,4 @@ const Navigation = () => {
       ))}
     </motion.div>
   );
-}
-
-export default Navigation;
+};
