@@ -1,6 +1,5 @@
 'use client';
-
-import React from 'react'
+import { z } from 'zod';
 import {
   Sheet,
   SheetHeader,
@@ -10,9 +9,16 @@ import {
 } from "@/components/ui/sheet"
 import useNewAccount from '../hooks/use-new-account'
 import { FinancialAccountForm } from './account-form';
+import { financialAccountFormSchema } from '@/zod/schema';
+
+type FormValues = z.infer<typeof financialAccountFormSchema>;
 
 export const NewAccountSheet = () => {
   const { isOpen, onClose } = useNewAccount();
+
+  const onSubmit = (values: FormValues) => {
+    console.log(values)
+  }
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -23,7 +29,16 @@ export const NewAccountSheet = () => {
             Enter the details below to create a new account.
           </SheetDescription>
         </SheetHeader>
-        <FinancialAccountForm />
+        <FinancialAccountForm
+          defaultValues=
+          {{
+            name: '',
+            category: '',
+            type: '',
+            customAccountName: '',
+            customTypeName: ''
+          }}
+          onSubmit={onSubmit} />
       </SheetContent>
     </Sheet>
   );
