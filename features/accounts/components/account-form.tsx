@@ -29,9 +29,11 @@ import { cn } from "@/lib/utils"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { Check, ChevronsUpDown, Plus, RotateCcw } from "lucide-react";
+import { Check, ChevronsUpDown, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
 
 import { financialAccountCategories, financialAccountTypes } from "@/constants/financial-accounts-types";
+import { financialAccountFormSchema } from '@/zod/schema';
+
 
 type FormValues = z.infer<typeof financialAccountFormSchema>;
 
@@ -45,46 +47,15 @@ type Props = {
     customTypeName: string,
   },
   onSubmit: (values: FormValues) => void,
+  onDelete?: () => void
   disabled?: boolean,
 };
-
-const financialAccountFormSchema = z.object({
-  name: z.string().min(1, { message: "Please enter an account name" }).max(50, { message: "Account name is too long" }),
-  category: z.string().min(1, { message: "Please enter an account category" }).max(50),
-  type: z.string().optional(),
-  customAccountName: z.string().optional(),
-  customTypeName: z.string().optional(),
-}).superRefine((data, ctx) => {
-  if (data.category !== 'custom' && !data.type) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Type is required if category is not "custom"',
-      path: ['type'],
-    });
-  }
-
-  if (data.category === 'custom') {
-    if (!data.customAccountName) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Custom account name is required if category is "custom"',
-        path: ['customAccountName'],
-      });
-    }
-    if (!data.customTypeName) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Custom type name is required if category is "custom"',
-        path: ['customTypeName'],
-      });
-    }
-  }
-});
 
 export const FinancialAccountForm = ({
   id,
   defaultValues,
   onSubmit,
+  onDelete,
   disabled,
 }: Props) => {
   const form = useForm<FormValues>({
@@ -95,8 +66,8 @@ export const FinancialAccountForm = ({
   // FIXME: Whatever the fuck this is.. Warning: A component is changing a controlled input to be uncontrolled. This is likely caused by the value changing from a defined to undefined, which should not happen. Decide between using a controlled or uncontrolled input element for the lifetime of the component. More info: https://reactjs.org/link/controlled-components
 
   const [categoryOpen, setCategoryOpen] = useState(false);
-  const [categoryValue, setCategoryValue] = useState('');
   const [accountTypeOpen, setAccountTypeOpen] = useState(false);
+  const [categoryValue, setCategoryValue] = useState('');
   const [accountTypeValue, setAccountTypeValue] = useState('');
   const [customAccountName, setCustomAccountName] = useState('');
   const [customAccountType, setCustomAccountType] = useState('');
@@ -119,10 +90,15 @@ export const FinancialAccountForm = ({
     setAccountTypeValue('');
     setCustomAccountName('');
     setCustomAccountType('');
+    console.log("Clearing Fields")
   };
 
+  const handleDelete = () => {
+    console.log("Deleting Account")
+  }
+
   const handleSubmit = (values: FormValues) => {
-    console.log({ values });
+    onSubmit(values);
   }
 
   return (
@@ -286,13 +262,37 @@ export const FinancialAccountForm = ({
           )}
         </div>
         <div className="space-y-2 mt-4">
-          <Button type="submit" className="w-full">
-            <Plus className="mr-2 size-2" />
-            Create Account
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={disabled}
+          >
+            {!!id ? (
+              <>
+                <Save className="mr-2 size-2" /> Save changes
+              </>
+            ) : (
+              <>
+                <Plus className="mr-2 size-2" /> Create account
+              </>
+            )}
           </Button>
-          <Button type="button" variant="destructive" className="w-full" onClick={handleClear}>
-            <RotateCcw className="mr-2 size-2" />
-            Clear Fields
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={disabled}
+            className="w-full"
+            onClick={() => (id ? handleDelete() : handleClear())}
+          >
+            {!!id ? (
+              <>
+                <Trash2 className="mr-2 size-2" /> Delete Account
+              </>
+            ) : (
+              <>
+                <RotateCcw className="mr-2 size-2" /> Clear fields
+              </>
+            )}
           </Button>
         </div>
       </form>
