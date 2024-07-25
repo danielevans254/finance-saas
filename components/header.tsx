@@ -1,10 +1,10 @@
 import { UserButton, ClerkLoading, ClerkLoaded } from "@clerk/nextjs";
-import HeaderLogo from "./header-logo";
-import Navigation from "./navigation";
+import { HeaderLogo } from "./header-logo";
+import { Navigation } from "./navigation";
 import { Loader2 } from "lucide-react";
-import WelcomeMessage from "./welcome-message";
+import { WelcomeMessage } from "./welcome-message";
 
-const Header = () => {
+export const Header = () => {
   return (
     <header className="bg-gradient-to-b from-blue-700 to-blue-500 px-4 py-8 lg:px-14 lg:pb-36">
       <div className="max-w-screen-3xl mx-auto">
@@ -24,6 +24,4 @@ const Header = () => {
       </div>
     </header>
   );
-}
-
-export default Header;
+};
