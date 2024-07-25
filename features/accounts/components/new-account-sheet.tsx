@@ -1,4 +1,5 @@
 'use client';
+
 import { z } from 'zod';
 import {
   Sheet,
@@ -10,15 +11,22 @@ import {
 import useNewAccount from '../hooks/use-new-account'
 import { FinancialAccountForm } from './account-form';
 import { financialAccountFormSchema } from '@/zod/schema';
+import { usePostAccount } from '../api/use-post-account';
+import { useMountedState } from "react-use";
 
 type FormValues = z.infer<typeof financialAccountFormSchema>;
 
 export const NewAccountSheet = () => {
   const { isOpen, onClose } = useNewAccount();
+  const isMounted = useMountedState();
+  const mutation = usePostAccount();
 
+  // FIXME: Fix the custom variant of the form
   const onSubmit = (values: FormValues) => {
-    console.log(values)
+    mutation.mutate(values)
   }
+
+  if (!isMounted()) return null;
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -30,6 +38,7 @@ export const NewAccountSheet = () => {
           </SheetDescription>
         </SheetHeader>
         <FinancialAccountForm
+          disabled={mutation.isPending}
           defaultValues=
           {{
             name: '',
