@@ -6,7 +6,15 @@ import { useMountedState } from "react-use";
 const SheetProvider = () => {
   const isMounted = useMountedState();
 
-  return isMounted() ? <NewAccountSheet /> : null;
+  if (!isMounted()) {
+    return null;
+  }
+
+  return (
+    <>
+      <NewAccountSheet />
+    </>
+  )
 };
 
 export default SheetProvider;
