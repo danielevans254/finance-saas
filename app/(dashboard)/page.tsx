@@ -3,10 +3,10 @@
 import { useGetAccounts } from "@/features/accounts/api/use-get-accounts";
 import { ClerkLoading, ClerkLoaded } from "@clerk/nextjs";
 import { Loader2, Plus, PlusIcon } from "lucide-react";
-import { accounts } from '../../db/schema/schema';
 import useNewAccount from "@/features/accounts/hooks/use-new-account";
 import { Button } from "@/components/ui/button";
 import Image from 'next/image';
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function Home() {
   const { data, error } = useGetAccounts();
@@ -28,14 +28,46 @@ export default function Home() {
       </div>
       <ClerkLoaded>
         {data && data.length > 0 ? (
-          <ul className="bg-white shadow-md rounded-lg p-6 space-y-4">
-            {data.map((account) => (
-              <li key={account.id} className="flex items-center justify-between p-4 border-b last:border-b-0 hover:bg-gray-100 transition duration-200">
-                <span className="text-lg font-semibold text-gray-900">{account.name}</span>
-                <span className="text-sm text-gray-500">#{account.id}</span>
-              </li>
-            ))}
-          </ul>
+          <ScrollArea className="h-80 rounded-md border-2 p-2">
+            <div className="px-8">
+              Accounts
+            </div>
+            <ul className="bg-white shadow-md rounded-lg p-6 space-y-4">
+              {data.map((account) => (
+
+                <li key={account.id} className="flex items-center justify-between p-4 last:border-b-0 hover:bg-gray-100 transition duration-200 cursor-pointer border-b">
+                  <div className="flex flex-col">
+                    <span className="text-lg font-semibold text-gray-900">{account.name}</span>
+                    {account.category !== 'custom' && (
+                      <div className="space-x-4">
+                        <span className="text-lg font-semibold text-white bg-blue-600 p-1">{account.category}
+                        </span>
+                        <span className="text-lg font-semibold text-white bg-purple-600 p-1">
+                          {account.type}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* FIXME: Fix the customAccountName and customTypeName */}
+                    {account.category === 'custom' && (
+                      <div className="space-x-4">
+                        <span className="text-lg font-semibold text-white bg-blue-600 p-1">
+                          {account.customAccountName}
+                        </span>
+                        <span className="text-lg font-semibold text-white bg-purple-600 p-1">
+                          {account.customTypeName}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <span className="text-sm text-gray-500">#{account.id}</span>
+
+                </li>
+
+              ))}
+            </ul>
+          </ScrollArea>
+
         ) : (
           <div className="flex flex-col items-center justify-center text-lg text-gray-700">
             <span className="mb-12 md:text-5xl text-2xl font-semibold">No accounts found</span>
@@ -57,11 +89,13 @@ export default function Home() {
           <p className="text-gray-700">Loading accounts</p>
         </div>
       </ClerkLoading>
-      {error && (
-        <p className="text-red-500 text-center">
-          Error: {error.message}
-        </p>
-      )}
-    </div>
+      {
+        error && (
+          <p className="text-red-500 text-center">
+            Error: {error.message}
+          </p>
+        )
+      }
+    </div >
   );
 }
