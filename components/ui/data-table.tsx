@@ -37,11 +37,13 @@ import {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  filterKey: string
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  filterKey,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -71,13 +73,14 @@ export function DataTable<TData, TValue>({
   })
 
   return (
+    // TODO: Make the filter dynamic, and the user can choose which column to filter by
     <div>
       <div className="flex items-center py-4">
         <Input
-          placeholder="Filter account name..."
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+          placeholder={`Filter by ${filterKey}`}
+          value={(table.getColumn(filterKey)?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
+            table.getColumn(filterKey)?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
@@ -178,7 +181,6 @@ export function DataTable<TData, TValue>({
           </Button>
         </div>
       </div>
-
     </div>
   )
 }

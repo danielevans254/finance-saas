@@ -31,11 +31,13 @@ export default function Home() {
         {data && data.length > 0 ? (
           <div className="container mx-auto py-10">
             {/* TODO: Fix this typescript error */}
-            <DataTable columns={accountColumns} data={data} />
+            {/* TODO: Make the filter search dynamic */}
+            <DataTable filterKey={"name"} columns={accountColumns} data={data} />
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center text-lg text-gray-700">
-            <span className="mb-12 md:text-5xl text-2xl font-semibold">No accounts found</span>
+            <span className="mb-12 md:text-5xl text-2xl font-semibold">
+              No accounts found</span>
             <Image
               src="/illustrations/no_accounts_found.svg"
               alt="Empty"
