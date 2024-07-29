@@ -15,6 +15,7 @@ import {
 import {
   ColumnDef,
   ColumnFiltersState,
+  Row,
   SortingState,
   VisibilityState,
   flexRender,
@@ -33,17 +34,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Trash2Icon } from "lucide-react"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   filterKey: string
+  onDelete?: (rows: Row<TData>[]) => void
+  disabled?: boolean
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   filterKey,
+  disabled,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -90,6 +95,21 @@ export function DataTable<TData, TValue>({
               Columns
             </Button>
           </DropdownMenuTrigger>
+          {/* TODO: Add the bulk delete functionality */}
+          <div>
+            {table.getFilteredRowModel().rows.length > 0 && (
+              <Button
+                disabled={disabled || !table.getFilteredSelectedRowModel().rows.length}
+                size="icon"
+                variant="destructive"
+                className="ml-2"
+              >
+                <div className="flex flex-col items-center justify-center">
+                  <Trash2Icon />
+                </div>
+              </Button>
+            )}
+          </div>
           <DropdownMenuContent align="end">
             {table
               .getAllColumns()
