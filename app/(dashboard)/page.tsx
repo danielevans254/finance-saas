@@ -32,7 +32,7 @@ export default function Home() {
           <div className="container mx-auto py-10">
             {/* TODO: Fix this typescript error */}
             {/* TODO: Make the filter search dynamic */}
-            <DataTable filterKey={"name"} columns={accountColumns} data={data} />
+            <DataTable filterKey={"name"} columns={accountColumns} data={data} onDelete={() => { }} />
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center text-lg text-gray-700">
